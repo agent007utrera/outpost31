@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radio Room - U.S. Outpost 31</title>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #0b0f19;
+            color: #d0d8e8;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .game-container {
+            position: relative;
+            width: 100%;
+            max-width: 1100px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.9), 0 0 20px rgba(0, 150, 255, 0.15);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .game-image {
+            width: 100%;
+            display: block;
+        }
+
+        .hotspot {
+            position: absolute;
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+
+        .hotspot:hover {
+            background-color: rgba(0, 220, 255, 0.5);
+            border: none;
+            box-shadow: inset 0 0 20px rgba(0, 255, 255, 0.8);
+        }
+
+        /* Coordenadas adaptadas para sala_radio_2.jpg */
+
+        #walkieSpot {
+    top: 64%;
+    left: 35%;
+    width: 8%;
+    height: 15%;
+    clip-path: polygon(0% 0%, 1% 99%, 100% 100%, 100% 3%);
+}
+
+        #radioConsoleSpot {
+    top: 38%;
+    left: 65%;
+    width: 18%;
+    height: 30%;
+    clip-path: polygon(2% 46%, 45% 47%, 47% 0%, 100% 1%, 97% 51%, 92% 100%, 0% 84%);
+}
+
+
+#book {
+    top: 73%;
+    left: 1%;
+    width: 24%;
+    height: 15%;
+    clip-path: polygon(100% 37%, 76% 10%, 71% 14%, 68% 5%, 68% 5%, 47% 0%, 0% 44%, 58% 100%);
+}
+
+#window {
+    top: 19%;
+    left: 54%;
+    width: 23%;
+    height: 29%;
+    clip-path: polygon(0% 12%, 100% 0%, 100% 52%, 96% 51%, 96% 63%, 49% 62%, 47% 100%, 10% 94%, 9% 88%, 3% 85%, 3% 77%, 0% 77%);
+}
+
+#typewriter {
+    top: 51%;
+    left: 21%;
+    width: 12%;
+    height: 12%;
+    clip-path: polygon(100% 72%, 89% 46%, 86% 24%, 70% 5%, 60% 0%, 25% 3%, 9% 15%, 0% 34%, 9% 73%, 47% 100%);
+}
+
+        .player-hud {
+            position: fixed;
+            top: 15px;
+            right: 20px;
+            background: rgba(5, 11, 20, 0.95);
+            border: 1px solid #0055ff;
+            color: #00f0ff;
+            padding: 8px 15px;
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            z-index: 1500;
+            box-shadow: 0 0 12px rgba(0, 85, 255, 0.4);
+            border-radius: 2px;
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #141a24;
+            border: 1px solid #2a3b55;
+            border-radius: 8px;
+            padding: 25px;
+            width: 90%;
+            max-width: 450px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 5px 25px rgba(0,120,255,0.2);
+            position: relative;
+            text-align: left;
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+            color: #4da6ff;
+            font-size: 1.2rem;
+            border-bottom: 1px solid #22304a;
+            padding-bottom: 10px;
+            text-align: center;
+        }
+
+        .modal-content p {
+            line-height: 1.6;
+            color: #b8c7e0;
+            font-size: 0.95rem;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 1.5rem;
+            color: #7a92b8;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        .close-btn:hover {
+            color: #fff;
+        }
+
+        #radioModal {
+            z-index: 2500;
+        }
+
+        #radioModal .modal-content {
+            width: 96vw;
+            height: 94vh;
+            max-width: 1200px;
+            max-height: 800px;
+            padding: 0;
+            background-color: #050b05;
+            border: 20px solid #1a1a1a;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #radioModal .close-btn {
+            position: fixed;
+            top: 25px;
+            right: 35px;
+            z-index: 2600;
+            color: #33ff33;
+            font-size: 2rem;
+            text-shadow: 0 0 10px rgba(51, 255, 51, 0.5);
+            background: #0a220a;
+            border: 1px solid #33ff33;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+        }
+
+        #radioModal .close-btn:hover {
+            background: #33ff33;
+            color: #000;
+            box-shadow: 0 0 15px #33ff33;
+        }
+
+        .drawer-img {
+            width: 100%;
+            max-height: 250px;
+            object-fit: contain;
+            margin-top: 15px;
+            border-radius: 6px;
+            border: 1px solid #0080ff;
+            cursor: pointer;
+        }
+
+        .drawer-btn {
+            background-color: #0080ff;
+            color: #fff;
+            border: none;
+            padding: 10px 15px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .drawer-btn:hover {
+            background-color: #0066cc;
+        }
+
+        .code-input {
+            background-color: #0b0f19;
+            border: 1px solid #2a3b55;
+            color: #7df9ff;
+            padding: 10px;
+            font-size: 1.1rem;
+            text-align: center;
+            width: 80%;
+            border-radius: 4px;
+            font-family: 'Share Tech Mono', monospace;
+            letter-spacing: 3px;
+            margin: 10px auto;
+            display: block;
+        }
+
+        #fullscreenViewer {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            z-index: 3000;
+            cursor: pointer;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #fullscreenViewer img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+
+        .back-btn {
+            display: none;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            background-color: #141a24;
+            color: #4da6ff;
+            border: 1px solid #2a3b55;
+            padding: 8px 12px;
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: bold;
+            text-decoration: none;
+            border-radius: 4px;
+            z-index: 1500;
+        }
+
+        #timerContainer {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            background: linear-gradient(135deg, #0d131f 0%, #162235 100%);
+            color: #7df9ff;
+            border: 2px solid #2e4a70;
+            box-shadow: inset 0 0 10px rgba(0, 180, 255, 0.2), 0 0 12px rgba(0, 150, 255, 0.3);
+            padding: 8px 14px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            border-radius: 6px;
+            z-index: 1500;
+            text-shadow: 0 0 6px rgba(125, 249, 255, 0.6);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="player-hud" id="playerHud">IDENTIDAD: CARGANDO...</div>
+
+    <div id="timerContainer">EST: <span id="countdown">00:10</span></div>
+    <a href="#" id="backBtn" class="back-btn" onclick="playClick(); volverAlMapa(event)">VOLVER AL MAPA</a>
+
+    <div class="game-container" id="gameContainer">
+        <video src="images/sala_radio.mp4" class="game-image" autoplay muted loop playsinline></video>
+
+        <div class="hotspot" id="book" onclick="playClick(); openModal('Protocolo de sintonización de radio', 'Para sintonizar la radio de emergencia, utilice el canal número: 505. Después, pulse <b>Iniciar Sintonización</b> para activar el sistema. Luego, ajuste los tres controles deslizantes de frecuencia, amplitud y fase hasta que la onda verde se acople con la onda amarilla de la señal en la pantalla. Mantenga la señal estable por encima del 85% hasta completar el 100% de la barra de sincronización para recibir el mensaje.')"></div>
+        <div class="hotspot" id="window" onclick="playClick(); openModal('Ventana', 'Bla bla bla.')"></div>
+        <div class="hotspot" id="typewriter" onclick="playClick(); openModal('Máquina de escribir', 'Bla bla bla.')"></div>
+
+        <div class="hotspot" id="walkieSpot" onclick="playClick(); revisarWalkieTalkie()"></div>
+        <div class="hotspot" id="radioConsoleSpot" onclick="playClick(); revisarRadioConsole()"></div>
+    </div>
+
+    <div id="gameModal" class="modal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="playClick(); closeModal()">&times;</button>
+            <h3 id="modalTitle">Título</h3>
+            <div id="modalBody">
+                <p id="modalText">Texto...</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="radioModal" class="modal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="playClick(); closeRadioModal()">&times;</button>
+            <iframe id="radioFrame" src="" style="width: 100%; height: 100%; border: none;"></iframe>
+        </div>
+    </div>
+
+    <div id="fullscreenViewer" onclick="playClick(); closeFullscreen()">
+        <img id="fullscreenImg" src="" alt="Pantalla completa">
+    </div>
+
+    <script>
+        const SCRIPT_INVENTARIO_URL = "https://script.google.com/macros/s/AKfycbyxoSM32MKedAamrgglimkF6W9-q0MrB-N1BmLL5WH6pKvLO2mDcz4aeCxCRm78OZaFcA/exec";
+        const SCRIPT_LOCALIZACIONES_URL = "https://script.google.com/macros/s/AKfycbw_XBJaqPoyMa0YeebEsrcoqXTMoIqIy4DGvSi9PulBb9YG2YD055wIbRa_yMyFUVJG/exec";
+
+        let jugadorActual = "JUGADOR";
+
+        function actualizarIdentidadJugador() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const jugadorUrl = urlParams.get('jugador');
+
+            if (jugadorUrl && jugadorUrl.trim() !== "") {
+                jugadorActual = jugadorUrl.trim();
+                localStorage.setItem('jugador_activo_global', jugadorActual);
+            } else {
+                const jugadorGuardado = localStorage.getItem('jugador_activo_global');
+                if (jugadorGuardado && jugadorGuardado.trim() !== "") {
+                    jugadorActual = jugadorGuardado;
+                } else {
+                    try {
+                        if (window.parent && window.parent !== window) {
+                            const parentNameElem = window.parent.document.getElementById('char-name');
+                            if (parentNameElem) {
+                                const textoPadre = parentNameElem.innerText.trim();
+                                if (textoPadre !== "" && textoPadre !== "Cargando...") {
+                                    jugadorActual = textoPadre;
+                                    localStorage.setItem('jugador_activo_global', jugadorActual);
+                                }
+                            }
+                        }
+                    } catch (e) {}
+                }
+            }
+
+            document.getElementById('playerHud').innerText = `IDENTIDAD: ${jugadorActual.toUpperCase()}`;
+            localStorage.setItem('jugador_nombre_real', jugadorActual);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            actualizarIdentidadJugador();
+        });
+
+        function playClick() {
+            const clickAudio = new Audio('audio/click.mp3');
+            clickAudio.play().catch(e => console.log("Audio error:", e));
+        }
+
+        let timeLeft = 10;
+        const countdownEl = document.getElementById('countdown');
+        const timerContainerEl = document.getElementById('timerContainer');
+        const backBtnEl = document.getElementById('backBtn');
+
+        const timerInterval = setInterval(() => {
+            timeLeft--;
+            if (timeLeft >= 0) {
+                let formattedTime = "00:" + (timeLeft < 10 ? "0" : "") + timeLeft;
+                countdownEl.innerText = formattedTime;
+            }
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                const clingAudio = new Audio('audio/cling.mp3');
+                clingAudio.play().catch(e => console.log("Audio error:", e));
+                timerContainerEl.style.display = 'none';
+                backBtnEl.style.display = 'block';
+            }
+        }, 1000);
+
+        function openModal(title, text) {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalBody').innerHTML = `<p id="modalText">${text}</p>`;
+            document.getElementById('gameModal').style.display = 'flex';
+        }
+
+        function openRadioModal() {
+            const iframe = document.getElementById('radioFrame');
+            if (!iframe.src || iframe.src === "" || iframe.src === window.location.href) {
+                iframe.src = 'radio.html';
+            }
+            document.getElementById('radioModal').style.display = 'flex';
+        }
+
+        function closeRadioModal() {
+            document.getElementById('radioModal').style.display = 'none';
+        }
+
+        // --- RUTINA ESPECÍFICA PARA EL WALKIE-TALKIE ---
+        function revisarWalkieTalkie() {
+            const nombreObjeto = "walkie_talkie";
+            const tituloModal = "Panel de comunicaciones";
+            const imagenSrc = "images/walkie_talkie.jpg";
+            const descripcionEncontrado = "Encuentras un walkie-talkie portátil dentro de uno de los paneles de control de radio.";
+
+            document.getElementById('modalTitle').innerText = tituloModal;
+            document.getElementById('modalBody').innerHTML = `<p style="text-align: center; color: #4da6ff;">Revisando equipo de transmisión...</p>`;
+            document.getElementById('gameModal').style.display = 'flex';
+
+            fetch(SCRIPT_LOCALIZACIONES_URL + `?action=getStatus&item=${encodeURIComponent(nombreObjeto)}`)
+                .then(async response => {
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    const text = await response.text();
+                    try { return JSON.parse(text); } 
+                    catch (e) { throw new Error("El servidor no devolvió un JSON válido."); }
+                })
+                .then(data => {
+                    if (data.disponible === false) {
+                        document.getElementById('modalBody').innerHTML = `<p>No hay nada de interés aquí.</p>`;
+                    } else {
+                        solicitarCodigoWalkie(nombreObjeto, imagenSrc, descripcionEncontrado);
+                    }
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    document.getElementById('modalBody').innerHTML = `<p style="color: #dc3545; text-align: center;">Error de conexión con el servidor.</p>`;
+                });
+        }
+
+        function solicitarCodigoWalkie(nombreObjeto, imagenSrc, descripcionEncontrado) {
+            document.getElementById('modalBody').innerHTML = `
+                <p style="text-align: center; color: #4da6ff;">Introduce tu CAP (código de acceso personal):</p>
+                <input type="text" id="personalCodeInput" class="code-input" maxlength="4" placeholder="----" autocomplete="off" autocapitalize="off" spellcheck="false" data-form-type="other">
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="drawer-btn" onclick="playClick(); validarCodigoWalkie('${nombreObjeto}', '${imagenSrc}', '${descripcionEncontrado}')">Comprobar Código</button>
+                </div>
+            `;
+        }
+
+        function validarCodigoWalkie(nombreObjeto, imagenSrc, descripcionEncontrado) {
+            const codigo = document.getElementById('personalCodeInput').value.trim();
+            let jugadorIdentificado = "";
+            let costePA = 0;
+
+            if (codigo === "1245") {
+                jugadorIdentificado = "jugador1";
+                costePA = 2;
+            } else if (codigo === "2356") {
+                jugadorIdentificado = "jugador2";
+                costePA = 3;
+            } else if (codigo === "3691" || codigo === "4826") {
+                const nopeAudio = new Audio('audio/nope.mp3');
+                nopeAudio.play().catch(e => console.log("Audio error:", e));
+                document.getElementById('modalBody').innerHTML = `
+                    <p style="text-align: center; color: #dc3545;">Acceso denegado. No puedes registrar esta localización.</p>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="drawer-btn" onclick="playClick(); closeModal()">Cerrar</button>
+                    </div>
+                `;
+                return;
+            } else {
+                const nopeAudio = new Audio('audio/nope.mp3');
+                nopeAudio.play().catch(e => console.log("Audio error:", e));
+                document.getElementById('modalBody').innerHTML = `
+                    <p style="text-align: center; color: #dc3545;">Código incorrecto. Acceso denegado.</p>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="drawer-btn" onclick="playClick(); closeModal()">Cerrar</button>
+                    </div>
+                `;
+                return;
+            }
+
+            jugadorActual = jugadorIdentificado;
+            document.getElementById('playerHud').innerText = `IDENTIDAD: ${jugadorActual.toUpperCase()}`;
+            localStorage.setItem('jugador_activo_global', jugadorActual);
+            localStorage.setItem('jugador_nombre_real', jugadorActual);
+
+            let nombreBonitoObjeto = nombreObjeto.charAt(0).toUpperCase() + nombreObjeto.slice(1);
+            document.getElementById('modalBody').innerHTML = `
+                <p>${descripcionEncontrado}</p>
+                <img src="${imagenSrc}" alt="${nombreBonitoObjeto}" class="drawer-img" onclick="playClick(); showFullscreenImage('${imagenSrc}')">
+                <p style="margin-top: 15px; text-align: center; color: #4da6ff;">¿Deseas asegurar el walkie-talkie? (Coste: ${costePA} Puntos de Acción).</p>
+                <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px;">
+                    <button class="drawer-btn" style="background-color: #28a745;" onclick="playClick(); procesarRecogidaObjeto('${nombreObjeto}', ${costePA})">Sí, coger</button>
+                    <button class="drawer-btn" style="background-color: #dc3545;" onclick="playClick(); closeModal()">No, dejar</button>
+                </div>
+            `;
+        }
+
+        // --- RUTINA ESPECÍFICA PARA ENCENDER LA RADIO ---
+        let radioCostePA = 0;
+        let radioJugadorTemp = "";
+
+        function revisarRadioConsole() {
+            const tituloModal = "Consola de Radio Principal";
+
+            document.getElementById('modalTitle').innerText = tituloModal;
+            document.getElementById('modalBody').innerHTML = `
+                <p style="text-align: center; color: #4da6ff;">Introduce tu CAP (código de acceso personal) para manipular la radio:</p>
+                <input type="text" id="personalCodeInput" class="code-input" maxlength="4" placeholder="----" autocomplete="off" autocapitalize="off" spellcheck="false" data-form-type="other">
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="drawer-btn" onclick="playClick(); validarCodigoRadioConsole()">Comprobar Código</button>
+                </div>
+            `;
+            document.getElementById('gameModal').style.display = 'flex';
+        }
+
+        function validarCodigoRadioConsole() {
+            const codigo = document.getElementById('personalCodeInput').value.trim();
+            let jugadorIdentificado = "";
+            let costePA = 0;
+
+            if (codigo === "1245") {
+                jugadorIdentificado = "jugador1";
+                costePA = 2;
+            } else if (codigo === "2356") {
+                jugadorIdentificado = "jugador2";
+                costePA = 3;
+            } else if (codigo === "3691" || codigo === "4826") {
+                const nopeAudio = new Audio('audio/nope.mp3');
+                nopeAudio.play().catch(e => console.log("Audio error:", e));
+                document.getElementById('modalBody').innerHTML = `
+                    <p style="text-align: center; color: #dc3545;">Acceso denegado: No puedes utilizar este equipo desde tu posición actual.</p>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="drawer-btn" onclick="playClick(); closeModal()">Cerrar</button>
+                    </div>
+                `;
+                return;
+            } else {
+                const nopeAudio = new Audio('audio/nope.mp3');
+                nopeAudio.play().catch(e => console.log("Audio error:", e));
+                document.getElementById('modalBody').innerHTML = `
+                    <p style="text-align: center; color: #dc3545;">Código incorrecto. Acceso denegado.</p>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="drawer-btn" onclick="playClick(); closeModal()">Cerrar</button>
+                    </div>
+                `;
+                return;
+            }
+
+            radioJugadorTemp = jugadorIdentificado;
+            radioCostePA = costePA;
+
+            document.getElementById('modalTitle').innerText = "Sintonización de Canal";
+            document.getElementById('modalBody').innerHTML = `
+                <p style="text-align: center; color: #4da6ff;">Introduce el canal de sintonización:</p>
+                <input type="text" id="channelInput" class="code-input" placeholder="Canal" autocomplete="off" autocapitalize="off" spellcheck="false">
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="drawer-btn" onclick="playClick(); validarCanalRadio()">Comprobar Canal</button>
+                </div>
+            `;
+        }
+
+        function validarCanalRadio() {
+            const canal = document.getElementById('channelInput').value.trim();
+            if (canal === "505") {
+                jugadorActual = radioJugadorTemp;
+                document.getElementById('playerHud').innerText = `IDENTIDAD: ${jugadorActual.toUpperCase()}`;
+                localStorage.setItem('jugador_activo_global', jugadorActual);
+                localStorage.setItem('jugador_nombre_real', jugadorActual);
+
+                document.getElementById('modalBody').innerHTML = `
+                    <p style="text-align: center; color: #4da6ff;">¿Deseas encender la radio? (Coste: ${radioCostePA} Puntos de Acción).</p>
+                    <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+                        <button class="drawer-btn" style="background-color: #28a745;" onclick="playClick(); confirmarEncenderRadio(${radioCostePA})">Sí, encender</button>
+                        <button class="drawer-btn" style="background-color: #dc3545;" onclick="playClick(); closeModal()">Cancelar</button>
+                    </div>
+                `;
+            } else {
+                const nopeAudio = new Audio('audio/nope.mp3');
+                nopeAudio.play().catch(e => console.log("Audio error:", e));
+                document.getElementById('modalBody').innerHTML = `
+                    <p style="text-align: center; color: #dc3545;">Canal incorrecto</p>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="drawer-btn" onclick="playClick(); closeModal()">CERRAR</button>
+                    </div>
+                `;
+            }
+        }
+
+        function confirmarEncenderRadio(costePA) {
+            document.getElementById('modalBody').innerHTML = `<p style="text-align: center; color: #4da6ff;">Verificando recursos para ${jugadorActual}...</p>`;
+
+            // Verificamos los puntos de acción usando el endpoint de inventario/acciones correspondiente
+            fetch(SCRIPT_INVENTARIO_URL + `?action=verificarYProcesarObjeto&jugador=${encodeURIComponent(jugadorActual)}&item=radio_encendida&coste=${costePA}`)
+                .then(async response => {
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    const text = await response.text();
+                    try { return JSON.parse(text); } 
+                    catch (e) { throw new Error("El servidor no devolvió un JSON válido."); }
+                })
+                .then(data => {
+                    if (data.suficientesAcciones === false) {
+                        const nopeAudio = new Audio('audio/nope.mp3');
+                        nopeAudio.play().catch(e => console.log("Audio error:", e));
+                        document.getElementById('modalBody').innerHTML = `
+                            <p style="text-align: center; color: #dc3545;">No tienes suficientes Puntos de Acción. Requieres ${costePA} PA para esta tarea.</p>
+                            <div style="text-align: center; margin-top: 20px;">
+                                <button class="drawer-btn" onclick="playClick(); closeModal()">Continuar</button>
+                            </div>
+                        `;
+                    } else {
+                        // Éxito: cerramos modal de texto y abrimos el popup completo con radio.html
+                        closeModal();
+                        openRadioModal();
+                    }
+                })
+                .catch(error => {
+                    console.error("Error de red:", error);
+                    // Si hay problemas con la red pero se quiere asegurar la apertura fluida del popup o mostrar error:
+                    closeModal();
+                    openRadioModal();
+                });
+        }
+
+        function procesarRecogidaObjeto(nombreObjeto, costePA) {
+            document.getElementById('modalBody').innerHTML = `<p style="text-align: center; color: #4da6ff;">Procesando recursos para ${jugadorActual}...</p>`;
+
+            fetch(SCRIPT_INVENTARIO_URL + `?action=verificarYProcesarObjeto&jugador=${encodeURIComponent(jugadorActual)}&item=${encodeURIComponent(nombreObjeto)}&coste=${costePA}`)
+                .then(async response => {
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    const text = await response.text();
+                    try { return JSON.parse(text); } 
+                    catch (e) { throw new Error("El servidor no devolvió un JSON válido."); }
+                })
+                .then(data => {
+                    if (data.suficientesAcciones === false) {
+                        const nopeAudio = new Audio('audio/nope.mp3');
+                        nopeAudio.play().catch(e => console.log("Audio error:", e));
+                        document.getElementById('modalBody').innerHTML = `
+                            <p style="text-align: center; color: #dc3545;">No tienes suficientes Puntos de Acción. Requieres ${costePA} PA para esta tarea.</p>
+                            <div style="text-align: center; margin-top: 20px;">
+                                <button class="drawer-btn" onclick="playClick(); closeModal()">Continuar</button>
+                            </div>
+                        `;
+                    } else if (data.success) {
+                        const pickupAudio = new Audio('audio/pickup.mp3');
+                        pickupAudio.play().catch(e => console.log("Audio error:", e));
+
+                        fetch(SCRIPT_LOCALIZACIONES_URL + `?action=updateStatus&item=${encodeURIComponent(nombreObjeto)}`)
+                            .then(response => response.json())
+                            .catch(err => console.error("Error al actualizar localizaciones:", err));
+
+                        document.getElementById('modalBody').innerHTML = `
+                            <p style="text-align: center; color: #5cdb95;">Operación completada. Objeto transferido a tu inventario.</p>
+                            <div style="text-align: center; margin-top: 20px;">
+                                <button class="drawer-btn" onclick="playClick(); closeModal()">Continuar</button>
+                            </div>
+                        `;
+                    } else {
+                        document.getElementById('modalBody').innerHTML = `
+                            <p style="text-align: center; color: #dc3545;">Error al actualizar la base de datos central.</p>
+                            <div style="text-align: center; margin-top: 20px;">
+                                <button class="drawer-btn" onclick="playClick(); closeModal()">Continuar</button>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    console.error("Error de red:", error);
+                    document.getElementById('modalBody').innerHTML = `
+                        <p style="text-align: center; color: #dc3545;">Error de conexión con el servidor.</p>
+                        <div style="text-align: center; margin-top: 20px;">
+                            <button class="drawer-btn" onclick="playClick(); closeModal()">Continuar</button>
+                        </div>
+                    `;
+                });
+        }
+
+        function showFullscreenImage(src) {
+            const viewer = document.getElementById('fullscreenViewer');
+            const img = document.getElementById('fullscreenImg');
+            img.src = src;
+            viewer.style.display = 'flex';
+        }
+
+        function closeFullscreen() {
+            document.getElementById('fullscreenViewer').style.display = 'none';
+        }
+
+        function closeModal() {
+            document.getElementById('gameModal').style.display = 'none';
+        }
+
+        function volverAlMapa(event) {
+            event.preventDefault();
+            const doorAudio = new Audio('audio/opendoor.mp3');
+            doorAudio.play().catch(e => console.log("Audio error:", e));
+            setTimeout(() => {
+                window.location.href = `mapa.html?jugador=${encodeURIComponent(jugadorActual)}`;
+            }, 1500);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Outpost 31 - Radiofrecuencia de Emergencia</title>
+  <style>
+    :root {
+      --bg: #040906;
+      --panel: #0b140f;
+      --border: #183324;
+      --crt-green: #00ff66;
+      --crt-amber: #ffaa00;
+      --crt-dim: rgba(0, 255, 102, 0.15);
+      --red: #ff3344;
+      --text: #d0e6d8;
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    body {
+      font-family: 'Courier New', Courier, monospace;
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    /* Efecto CRT Scanlines */
+    body::before {
+      content: " ";
+      position: absolute;
+      top: 0; left: 0; bottom: 0; right: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+      background-size: 100% 4px;
+      z-index: 100;
+      pointer-events: none;
+    }
+
+    /* Contenedor Principal */
+    .radio-panel {
+      background: var(--panel);
+      border: 3px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      width: 760px;
+      box-shadow: 0 0 35px rgba(0,0,0,0.9), inset 0 0 15px var(--crt-dim);
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    /* Cabecera */
+    .header {
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header h2 {
+      margin: 0;
+      font-size: 1.1rem;
+      color: var(--crt-green);
+      letter-spacing: 2px;
+      text-shadow: 0 0 8px var(--crt-green);
+    }
+
+    .header .sub {
+      font-size: 0.75rem;
+      color: #557e67;
+    }
+
+    /* Layout Pantalla CRT + Controles */
+    .main-layout {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Pantalla Osciloscopio CRT */
+    .crt-container {
+      position: relative;
+      width: 380px;
+      height: 260px;
+      background: #010804;
+      border: 4px solid #142e1f;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0,255,102,0.1), inset 0 0 25px rgba(0,0,0,0.9);
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    /* Red de cuadrícula CRT */
+    .crt-grid {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background-size: 38px 26px;
+      background-image: 
+        linear-gradient(to right, rgba(0, 255, 102, 0.08) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 255, 102, 0.08) 1px, transparent 1px);
+      pointer-events: none;
+    }
+
+    /* Sidebar de Controles */
+    .sidebar {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .stat-card {
+      background: rgba(0,0,0,0.4);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+    }
+
+    .stat-title {
+      font-size: 0.7rem;
+      color: #6a9c81;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .progress-bar-bg {
+      background: #06120b;
+      height: 16px;
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--crt-green);
+      box-shadow: 0 0 8px var(--crt-green);
+      transition: width 0.2s;
+    }
+
+    /* Controles Deslizantes (Diales) */
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: rgba(0,0,0,0.3);
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+
+    .control-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .control-label {
+      font-size: 0.7rem;
+      color: var(--text);
+      display: flex;
+      justify-content: space-between;
+      font-weight: bold;
+    }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 100%;
+      background: #08170e;
+      height: 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      outline: none;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--crt-green);
+      cursor: pointer;
+      box-shadow: 0 0 8px var(--crt-green);
+    }
+
+    .status-box {
+      font-size: 0.8rem;
+      font-weight: bold;
+      color: var(--crt-amber);
+      min-height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      border: 1px dashed var(--border);
+      padding: 6px;
+      border-radius: 6px;
+      background: #030a06;
+    }
+
+    /* Botón de Acción */
+    .btn-main {
+      width: 100%;
+      padding: 12px;
+      background: var(--crt-green);
+      border: none;
+      border-radius: 6px;
+      color: #000;
+      font-family: inherit;
+      font-weight: bold;
+      font-size: 0.85rem;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: opacity 0.2s;
+    }
+
+    .btn-main:hover {
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="radio-panel">
+    <div class="header">
+      <div>
+        <h2>RADIOFRECUENCIA DE EMERGENCIA</h2>
+        <div class="sub">SINTONIZADOR TRANSMISOR U.S. OUTPOST 31</div>
+      </div>
+      <div style="font-size:0.8rem; color:var(--crt-green);">SISTEMA: EN LÍNEA</div>
+    </div>
+
+    <div class="main-layout">
+      <!-- Osciloscopio / Pantalla CRT -->
+      <div class="crt-container">
+        <canvas id="radio-canvas" width="380" height="260"></canvas>
+        <div class="crt-grid"></div>
+      </div>
+
+      <!-- Sidebar de Controles -->
+      <div class="sidebar">
+        
+        <div class="stat-card">
+          <div class="stat-title">
+            <span>SINCRO CON SEÑAL SOS</span>
+            <span id="sync-val">0%</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div id="sync-bar" class="progress-fill"></div>
+          </div>
+        </div>
+
+        <!-- Controles Dial (Sliders) -->
+        <div class="control-group">
+          
+          <div class="control-row">
+            <div class="control-label">
+              <span>FRECUENCIA (Hz)</span>
+              <span id="val-freq">1.0</span>
+            </div>
+            <input type="range" id="slider-freq" min="0.5" max="4.0" step="0.05" value="1.0" oninput="updateControls()">
+          </div>
+
+          <div class="control-row">
+            <div class="control-label">
+              <span>AMPLITUD (mV)</span>
+              <span id="val-amp">30</span>
+            </div>
+            <input type="range" id="slider-amp" min="10" max="80" step="1" value="30" oninput="updateControls()">
+          </div>
+
+          <div class="control-row">
+            <div class="control-label">
+              <span>FASE / FILTRO (Rad)</span>
+              <span id="val-phase">0.0</span>
+            </div>
+            <input type="range" id="slider-phase" min="0" max="6.28" step="0.05" value="0" oninput="updateControls()">
+          </div>
+
+        </div>
+
+        <div id="status-text" class="status-box">PRESIONE INICIAR PARA BUSCAR CANAL</div>
+
+        <button id="main-btn" class="btn-main" onclick="initGame()">INICIAR SINTONIZACIÓN</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Audio Sintetizado (Ruido Estático de Radio + Tono)
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    let noiseNode = null;
+    let gainNode = null;
+
+    function initAudio() {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      if (noiseNode) return;
+
+      // Generar ruido blanco para la interferencia
+      const bufferSize = audioCtx.sampleRate * 2;
+      const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+      }
+
+      noiseNode = audioCtx.createBufferSource();
+      noiseNode.buffer = noiseBuffer;
+      noiseNode.loop = true;
+
+      gainNode = audioCtx.createGain();
+      gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
+
+      noiseNode.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      noiseNode.start();
+    }
+
+    function updateAudioVolume(matchPct) {
+      if (!gainNode) return;
+      // Menos estática a mayor coincidencia de señal
+      const volume = Math.max(0.005, (100 - matchPct) / 100 * 0.08);
+      gainNode.gain.setTargetAtTime(volume, audioCtx.currentTime, 0.1);
+    }
+
+    function playBeep() {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      osc.connect(g);
+      g.connect(audioCtx.destination);
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+      g.gain.setValueAtTime(0.15, audioCtx.currentTime);
+      g.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+    }
+
+    const canvas = document.getElementById('radio-canvas');
+    const ctx = canvas.getContext('2d');
+
+    // Señal Objetivo (SOS) y Señal Jugador
+    let target = { freq: 2.2, amp: 55, phase: 1.8 };
+    let player = { freq: 1.0, amp: 30, phase: 0.0 };
+
+    let syncProgress = 0;
+    let stormTimer = 0;
+    let noiseLevel = 0;
+    let gameActive = false;
+    let animFrame = null;
+
+    function updateControls() {
+      player.freq = parseFloat(document.getElementById('slider-freq').value);
+      player.amp = parseFloat(document.getElementById('slider-amp').value);
+      player.phase = parseFloat(document.getElementById('slider-phase').value);
+
+      document.getElementById('val-freq').innerText = player.freq.toFixed(2);
+      document.getElementById('val-amp').innerText = Math.round(player.amp);
+      document.getElementById('val-phase').innerText = player.phase.toFixed(2);
+    }
+
+    function initGame() {
+      if (animFrame) cancelAnimationFrame(animFrame);
+      initAudio();
+
+      // Aleatorizar la señal SOS
+      target.freq = (Math.random() * 2.5 + 1.2).toFixed(2) * 1;
+      target.amp = Math.floor(Math.random() * 35 + 35);
+      target.phase = (Math.random() * 5.0).toFixed(2) * 1;
+
+      syncProgress = 0;
+      stormTimer = 0;
+      noiseLevel = 0;
+      gameActive = true;
+
+      document.getElementById('status-text').innerText = "📡 AJUSTE LOS DIALES HASTA ACOPLAR ONDAS";
+      document.getElementById('status-text').style.color = "var(--crt-amber)";
+      document.getElementById('main-btn').style.display = 'none';
+
+      updateControls();
+      lastTime = performance.now();
+      loop(lastTime);
+    }
+
+    let lastTime = 0;
+    function loop(time) {
+      if (!gameActive) return;
+
+      const dt = (time - lastTime) / 1000;
+      lastTime = time;
+
+      // Eventos de Interferencia por Tormenta Antártica
+      stormTimer += dt;
+      if (stormTimer > 4.5) {
+        stormTimer = 0;
+        // Ráfaga de ruido e interrupción suave de fase
+        noiseLevel = 25;
+        target.phase = (target.phase + (Math.random() * 1.2 - 0.6) + 6.28) % 6.28;
+        document.getElementById('status-text').innerText = "⚠️ INTERFERENCIA DE VENTISCA: REAJUSTE SEÑAL";
+        document.getElementById('status-text').style.color = "var(--red)";
+      }
+
+      if (noiseLevel > 0) noiseLevel -= dt * 15;
+
+      // Calcular diferencia entre la onda del jugador y la de objetivo
+      const diffFreq = Math.abs(target.freq - player.freq);
+      const diffAmp = Math.abs(target.amp - player.amp);
+      const diffPhase = Math.abs(target.phase - player.phase);
+
+      // Calcular Coincidencia (Match Score 0% a 100%)
+      let matchScore = 100 - (diffFreq * 25 + diffAmp * 0.8 + diffPhase * 12);
+      matchScore = Math.max(0, Math.min(100, matchScore));
+
+      updateAudioVolume(matchScore);
+
+      // Si la coincidencia es superior al 85%, se acumula el progreso de transmisión SOS
+      if (matchScore > 85 && noiseLevel < 5) {
+        syncProgress += dt * 25; // Toma ~4 segundos acoplado
+        document.getElementById('status-text').innerText = "🟢 TRANSMISIÓN EN SINCRO: MANTENGA CANAL";
+        document.getElementById('status-text').style.color = "var(--crt-green)";
+        if (syncProgress >= 100) {
+          syncProgress = 100;
+          gameOver(true);
+        }
+      } else {
+        syncProgress = Math.max(0, syncProgress - dt * 10);
+      }
+
+      drawWaves(time, matchScore);
+      updateUI(matchScore);
+
+      animFrame = requestAnimationFrame(loop);
+    }
+
+    function drawWaves(time, matchScore) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const centerY = canvas.height / 2;
+      const t = time * 0.003;
+
+      // 1. Dibujar Onda SOS Objetivo (Línea Amarilla Discontinua)
+      ctx.beginPath();
+      ctx.setLineDash([6, 4]);
+      ctx.strokeStyle = "rgba(255, 170, 0, 0.75)";
+      ctx.lineWidth = 2;
+
+      for (let x = 0; x < canvas.width; x++) {
+        const angle = (x * 0.03 * target.freq) + target.phase + t;
+        const noise = (Math.random() - 0.5) * noiseLevel;
+        const y = centerY + Math.sin(angle) * target.amp + noise;
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]); // Reset línea continua
+
+      // 2. Dibujar Onda del Jugador (Línea Verde CRT)
+      ctx.beginPath();
+      ctx.strokeStyle = matchScore > 85 ? "var(--crt-green)" : "rgba(0, 255, 102, 0.85)";
+      ctx.lineWidth = 2.5;
+
+      if (matchScore > 85) {
+        ctx.shadowColor = "var(--crt-green)";
+        ctx.shadowBlur = 10;
+      }
+
+      for (let x = 0; x < canvas.width; x++) {
+        const angle = (x * 0.03 * player.freq) + player.phase + t;
+        const noise = (Math.random() - 0.5) * (noiseLevel * 0.5);
+        const y = centerY + Math.sin(angle) * player.amp + noise;
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0; // Reset
+    }
+
+    function updateUI(matchScore) {
+      document.getElementById('sync-val').innerText = `${Math.round(syncProgress)}%`;
+      document.getElementById('sync-bar').style.width = `${syncProgress}%`;
+    }
+
+    function gameOver(isWin) {
+      gameActive = false;
+      if (animFrame) cancelAnimationFrame(animFrame);
+      if (gainNode) gainNode.gain.setValueAtTime(0.001, audioCtx.currentTime);
+
+      playBeep();
+
+      if (isWin) {
+        const mensajeAudio = new Audio('audio/mensaje.mp3');
+        mensajeAudio.play().catch(e => console.log("Audio play blocked", e));
+      }
+
+      const statusEl = document.getElementById('status-text');
+      statusEl.innerText = "🎉 MENSAGE SOS ENVIADO: RESCATE EN CAMINO";
+      statusEl.style.color = "var(--crt-green)";
+
+      const btn = document.getElementById('main-btn');
+      btn.innerText = "NUEVA FRECUENCIA";
+      btn.style.display = 'block';
+    }
+  </script>
+</body>
+</html>

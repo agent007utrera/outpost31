@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sala de Calderas - U.S. Outpost 31</title>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #0b0f19;
+            color: #d0d8e8;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .game-container {
+            position: relative;
+            width: 100%;
+            max-width: 1100px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.9), 0 0 20px rgba(0, 150, 255, 0.15);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .game-image {
+            width: 100%;
+            display: block;
+        }
+
+        .hotspot {
+            position: absolute;
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+
+        .hotspot:hover {
+            background-color: rgba(0, 220, 255, 0.5);
+            border: none;
+            box-shadow: inset 0 0 20px rgba(0, 255, 255, 0.8);
+        }
+
+        /* Hotspots adaptados a la Sala de Calderas */
+        #calderaPrincipal {
+    top: 40%;
+    left: 16%;
+    width: 37%;
+    height: 44%;
+    clip-path: polygon(22% 0%, 72% 0%, 82% 6%, 90% 17%, 94% 30%, 98% 51%, 99% 62%, 100% 74%, 97% 80%, 94% 85%, 90% 93%, 82% 99%, 73% 100%, 66% 100%, 59% 100%, 50% 99%, 47% 97%, 35% 91%, 29% 87%, 20% 86%, 16% 84%, 11% 77%, 9% 71%, 9% 70%, 5% 58%, 0% 46%, 0% 39%, 3% 27%, 4% 26%, 5% 20%, 9% 14%, 11% 10%, 14% 7%, 16% 5%);
+}
+
+        #mesaHerramientas {
+    top: 51%;
+    left: 59%;
+    width: 22%;
+    height: 26%;
+    clip-path: polygon(0% 17%, 16% 0%, 100% 5%, 100% 75%, 91% 100%, 2% 88%);
+}
+
+        #cuadroElectrico {
+    top: 23%;
+    left: 93%;
+    width: 6%;
+    height: 17%;
+    clip-path: polygon(17% 13%, 33% 1%, 100% 0%, 86% 95%, 30% 100%, 0% 94%);
+}
+
+        #valvulasSuperiores {
+    top: 1%;
+    left: 48%;
+    width: 37%;
+    height: 23%;
+    clip-path: polygon(0% 73%, 89% 47%, 87% 0%, 100% 0%, 100% 76%, 0% 100%);
+}
+
+        #sueloZona {
+    top: 74%;
+    left: 45%;
+    width: 35%;
+    height: 26%;
+    clip-path: polygon(38% 0%, 100% 18%, 90% 99%, 0% 100%);
+}
+        .player-hud {
+            position: fixed;
+            top: 15px;
+            right: 20px;
+            background: rgba(5, 11, 20, 0.95);
+            border: 1px solid #0055ff;
+            color: #00f0ff;
+            padding: 8px 15px;
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            z-index: 1500;
+            box-shadow: 0 0 12px rgba(0, 85, 255, 0.4);
+            border-radius: 2px;
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #141a24;
+            border: 1px solid #2a3b55;
+            border-radius: 8px;
+            padding: 25px;
+            width: 90%;
+            max-width: 450px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 5px 25px rgba(0,120,255,0.2);
+            position: relative;
+            text-align: left;
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+            color: #4da6ff;
+            font-size: 1.2rem;
+            border-bottom: 1px solid #22304a;
+            padding-bottom: 10px;
+            text-align: center;
+        }
+
+        .modal-content p {
+            line-height: 1.6;
+            color: #b8c7e0;
+            font-size: 0.95rem;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 1.5rem;
+            color: #7a92b8;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        .close-btn:hover {
+            color: #fff;
+        }
+
+        #terminalModal {
+            z-index: 2500;
+        }
+
+        #terminalModal .modal-content {
+            width: 96vw;
+            height: 94vh;
+            max-width: 1200px;
+            max-height: 800px;
+            padding: 0;
+            background-color: #050b05;
+            border: 20px solid #1a1a1a;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #terminalModal .close-btn {
+            position: fixed;
+            top: 25px;
+            right: 35px;
+            z-index: 2600;
+            color: #33ff33;
+            font-size: 2rem;
+            text-shadow: 0 0 10px rgba(51, 255, 51, 0.5);
+            background: #0a220a;
+            border: 1px solid #33ff33;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+        }
+
+        #terminalModal .close-btn:hover {
+            background: #33ff33;
+            color: #000;
+            box-shadow: 0 0 15px #33ff33;
+        }
+
+        .drawer-img {
+            width: 100%;
+            max-height: 250px;
+            object-fit: contain;
+            margin-top: 15px;
+            border-radius: 6px;
+            border: 1px solid #0080ff;
+            cursor: pointer;
+        }
+
+        .drawer-btn {
+            background-color: #0080ff;
+            color: #fff;
+            border: none;
+            padding: 10px 15px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .drawer-btn:hover {
+            background-color: #0066cc;
+        }
+
+        .code-input {
+            background-color: #0b0f19;
+            border: 1px solid #2a3b55;
+            color: #7df9ff;
+            padding: 10px;
+            font-size: 1.1rem;
+            text-align: center;
+            width: 80%;
+            border-radius: 4px;
+            font-family: 'Share Tech Mono', monospace;
+            letter-spacing: 3px;
+            margin: 10px auto;
+            display: block;
+        }
+
+        #fullscreenViewer {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            z-index: 3000;
+            cursor: pointer;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #fullscreenViewer img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+
+        .back-btn {
+            display: none;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            background-color: #141a24;
+            color: #4da6ff;
+            border: 1px solid #2a3b55;
+            padding: 8px 12px;
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: bold;
+            text-decoration: none;
+            border-radius: 4px;
+            z-index: 1500;
+        }
+
+        #timerContainer {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            background: linear-gradient(135deg, #0d131f 0%, #162235 100%);
+            color: #7df9ff;
+            border: 2px solid #2e4a70;
+            box-shadow: inset 0 0 10px rgba(0, 180, 255, 0.2), 0 0 12px rgba(0, 150, 255, 0.3);
+            padding: 8px 14px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            border-radius: 6px;
+            z-index: 1500;
+            text-shadow: 0 0 6px rgba(125, 249, 255, 0.6);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="player-hud" id="playerHud">IDENTIDAD: CARGANDO...</div>
+
+    <div id="timerContainer">EST: <span id="countdown">00:10</span></div>
+    <a href="#" id="backBtn" class="back-btn" onclick="playClick(); volverAlMapa(event)">VOLVER AL MAPA</a>
+
+    <div class="game-container" id="gameContainer">
+        <video src="images/sala_calderas.mp4" alt="Sala de Calderas - Outpost 31" class="game-image" autoplay muted loop playsinline preload="auto"></video>
+
+        <div class="hotspot" id="calderaPrincipal" onclick="playClick(); revisarCaldera()"></div>
+        <div class="hotspot" id="mesaHerramientas" onclick="playClick(); openModal('Banco de Trabajo', 'Herramientas de fontanería pesada y manómetros cubiertos de herrumbre y escarcha.')"></div>
+        <div class="hotspot" id="cuadroElectrico" onclick="playClick(); openModal('Cuadro Eléctrico', 'Disyuntores principales de alta tensión. El parpadeo de la bombilla revela riesgo eléctrico constante.')"></div>
+        <div class="hotspot" id="valvulasSuperiores" onclick="playClick(); openModal('Tuberías Superiores', 'Red de conducción de vapor auxiliar totalmente congelada por el frío exterior filtrándose por la ventana.')"></div>
+        <div class="hotspot" id="sueloZona" onclick="playClick(); revisarHerramientaEspecial()"></div>
+    </div>
+
+    <div id="gameModal" class="modal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="playClick(); closeModal()">&times;</button>
+            <h3 id="modalTitle">Título</h3>
+            <div id="modalBody">
+                <p id="modalText">Texto...</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="terminalModal" class="modal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="playClick(); closeTerminalModal()">&times;</button>
+            <iframe id="terminalFrame" src="" style="width: 100%; height: 100%; border: none;"></iframe>
+        </div>
+    </div>
+
+    <div id="fullscreenViewer" onclick="playClick(); closeFullscreen()">
+        <img id="fullscreenImg" src="" alt="Pantalla completa">
+    </div>
+
+    <script>
+        // --- URLs DE LES GOOGLE APPS SCRIPTS ---
+        const SCRIPT_INVENTARIO_URL = "https://script.google.com/macros/s/AKfycbyxoSM32MKedAamrgglimkF6W9-q0MrB-N1BmLL5WH6pKvLO2mDcz4aeCxCRm78OZaFcA/exec";
+        const SCRIPT_LOCALIZACIONES_URL = "https://script.google.com/macros/s/AKfycbw_XBJaqPoyMa0YeebEsrcoqXTMoIqIy4DGvSi9PulBb9YG2YD055wIbRa_yMyFUVJG/exec";
+        const SCRIPT_ACTIVACIONES_URL = "https://script.google.com/macros/s/AKfycbx0YCRVJo4XWurwhh4IAR89Pk5xD_33RshFrPDF0qUUe6vAnrt5MBg3XqA-epGSM53g/exec"; // <-- Sustituye por la URL /exec de tu despliegue del script Activaciones1
+
+        // Helper: hace fetch con un límite de tiempo, para no quedarse colgado esperando al servidor
+        function fetchConTimeout(url, timeoutMs = 12000) {
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), timeoutMs);
+            return fetch(url, { signal: controller.signal }).finally(() => clearTimeout(id));
+        }
+
+        let jugadorActual = "JUGADOR";
+
+        function actualizarIdentidadJugador() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const jugadorUrl = urlParams.get('jugador');
+
+            if (jugadorUrl && jugadorUrl.trim() !== "") {
+                jugadorActual = jugadorUrl.trim();
+                localStorage.setItem('jugador_activo_global', jugadorActual);
+            } else {
+                const jugadorGuardado = localStorage.getItem('jugador_activo_global');
+                if (jugadorGuardado && jugadorGuardado.trim() !== "") {
+                    jugadorActual = jugadorGuardado;
+                } else {
+                    try {
+                        if (window.parent && window.parent !== window) {
+                            const parentNameElem = window.parent.document.getElementById('char-name');
+                            if (parentNameElem) {
+                                const textoPadre = parentNameElem.innerText.trim();
+                                if (textoPadre !== "" && textoPadre !== "Cargando...") {
+                                    jugadorActual = textoPadre;
+                                    localStorage.setItem('jugador_activo_global', jugadorActual);
+                                }
+                            }
+                        }
+                    } catch (e) {}
+                }
+            }
+
+            document.getElementById('playerHud').innerText = `IDENTIDAD: ${jugadorActual.toUpperCase()}`;
+            localStorage.setItem('jugador_nombre_real', jugadorActual);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            actualizarIdentidadJugador();
+        });
+
+        function playClick() {
+            const clickAudio = new Audio('audio/click.mp3');
+            clickAudio.play().catch(e => console.log("Audio error:", e));
+        }
+
+        let timeLeft = 10;
+        const countdownEl = document.getElementById('countdown');
+        const timerContainerEl = document.getElementById('timerContainer');
+        const backBtnEl = document.getElementById('backBtn');
+
+        const timerInterval = setInterval(() => {
+            timeLeft--;
+            if (timeLeft >= 0) {
+                let formattedTime = "00:" + (timeLeft < 10 ? "0" : "") + timeLeft;
+                countdownEl.innerText = formattedTime;
+            }
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                const clingAudio = new Audio('audio/cling.mp3');
+                clingAudio.play().catch(e => console.log("Audio error:", e));
+                timerContainerEl.style.display = 'none';
+                backBtnEl.style.display = 'block';
+            }
+        }, 1000);
+
+        function openModal(title, text) {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalBody').innerHTML = `<p id="modalText">${text}</p>`;
+            document.getElementById('gameModal').style.display = 'flex';
+        }
+
+        // --- RUTINA PARA BUSCAR OBJETO EN LA SALA DE CALDERAS ---
+        function revisarHerramientaEspecial() {
+            const nombreObjeto = "Objeto123";
+            const tituloModal = "Suelo de la Sala de Calderas";
+            const imagenSrc = "images/objeto123.jpg";
+            const descripcionEncontrado = "Entre los charcos helados y restos metálicos junto a la caldera, encuentras una robusta llave inglesa de alta resistencia.";
+
+            document.getElementById('modalTitle').innerText = tituloModal;
+            document.getElementById('modalBody').innerHTML = `<p style="text-align: center; color: #4da6ff;">Inspeccionando restos del suelo...</p>`;
+            document.getElementById('gameModal').style.display = 'flex';
+
+            fetch(SCRIPT_LOCALIZACIONES_URL + `?action=getStatus&item=${encodeURIComponent(nombreObjeto)}`)
+                .then(async response => {
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    const text = await response.text();
+                    try { return JSON.parse(text); } 
+                    catch (e) { throw new Error("El servidor no devolvió un JSON válido."); }
+                })
+                .then(data => {
+                    if (data.disponible === false) {
+                        document.getElementById('modalBody').innerHTML = `<p>El suelo está despejado de herramientas sueltas. Alguien ya se ha llevado lo útil de aquí.</p>`;
+                    } else {
+                        solicitarCodigoObjeto(nombreObjeto, imagenSrc, descripcionEncontrado);
+                    }
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    document.getElementById('modalBody').innerHTML = `<p style="color: #dc3545; text-align: center;">Error de conexión con el servidor.</p>`;
+                });
+        }
+
+        function solicitarCodigoObjeto(nombreObjeto, imagenSrc, descripcionEncontrado) {
+            document.getElementById('modalBody').innerHTML = `
+                <p style="text-align: center; color: #4da6ff;">Introduce tu código de acceso personal:</p>
+                <input type="text" id="personalCodeInput" class="code-input" maxlength="4" placeholder="----" autocomplete="off" autocapitalize="off" spellcheck="false" data-form-type="other">
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="drawer-btn" onclick="playClick(); validarCodigoObjeto('${nombreObjeto}', '${imagenSrc}', '${descripcionEncontrado}')">Comprobar Código</button>
+                </div>
+            `;
+        }
+
+        function validarCodigoObjeto(nombreObjeto, imagenSrc, descripcionEncontrado) {
+            const codigo = document.getElementById('personalCodeInput').value.trim();
+
+            if (codigo === "hola" || codigo === "9999") {
+                const nopeAudio = new Audio('audio/nope.mp3');
+                nopeAudio.play().catch(e => console.log("Audio error:", e));
+                document.getElementById('modalBody').innerHTML = `
+                    <p style="text-align: center; color: #dc3545;">Acceso denegado.</p>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="drawer-btn" onclick="playClick(); closeModal()">Cerrar</button>
+                    </div>
+                `;
+                return;
+            }
+
+            let jugadorIdentificado = "";
+            let costePA = 2;
+
+            if (codigo === "1245") {
+                jugadorIdentificado = "jugador1";
+            } else if (codigo === "2356") {
+                jugadorIdentificado = "jugador2";
+            } else if (codigo === "3691") {
+                jugadorIdentificado = "jugador3";
+            } else if (codigo === "4826") {
+                jugadorIdentificado = "jugador4";
+            } else {
+                const nopeAudio = new Audio('audio/nope.mp3');
+                nopeAudio.play().catch(e => console.log("Audio error:", e));
+                document.getElementById('modalBody').innerHTML = `
+                    <p style="text-align: center; color: #dc3545;">Código incorrecto. Acceso denegado.</p>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="drawer-btn" onclick="playClick(); closeModal()">Cerrar</button>
+                    </div>
+                `;
+                return;
+            }
+
+            jugadorActual = jugadorIdentificado;
+            document.getElementById('playerHud').innerText = `IDENTIDAD: ${jugadorActual.toUpperCase()}`;
+            localStorage.setItem('jugador_activo_global', jugadorActual);
+            localStorage.setItem('jugador_nombre_real', jugadorActual);
+
+            let nombreBonitoObjeto = nombreObjeto.charAt(0).toUpperCase() + nombreObjeto.slice(1).replace('_', ' ');
+            document.getElementById('modalBody').innerHTML = `
+                <p>${descripcionEncontrado}</p>
+                <img src="${imagenSrc}" alt="${nombreBonitoObjeto}" class="drawer-img" onclick="playClick(); showFullscreenImage('${imagenSrc}')">
+                <p style="margin-top: 15px; text-align: center; color: #4da6ff;">¿Deseas asegurar este objeto? (Coste: ${costePA} Puntos de Acción).</p>
+                <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px;">
+                    <button class="drawer-btn" style="background-color: #28a745;" onclick="playClick(); procesarRecogidaObjeto('${nombreObjeto}', ${costePA})">Sí, cargar</button>
+                    <button class="drawer-btn" style="background-color: #dc3545;" onclick="playClick(); closeModal()">No, dejar</button>
+                </div>
+            `;
+        }
+
+        function procesarRecogidaObjeto(nombreObjeto, costePA) {
+            document.getElementById('modalBody').innerHTML = `<p style="text-align: center; color: #4da6ff;">Procesando recursos para ${jugadorActual}...</p>`;
+
+            fetch(SCRIPT_INVENTARIO_URL + `?action=verificarYProcesarObjeto&jugador=${encodeURIComponent(jugadorActual)}&item=${encodeURIComponent(nombreObjeto)}&coste=${costePA}`)
+                .then(async response => {
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    const text = await response.text();
+                    try { return JSON.parse(text); } 
+                    catch (e) { throw new Error("El servidor no devolvió un JSON válido."); }
+                })
+                .then(data => {
+                    if (data.suficientesAcciones === false) {
+                        const nopeAudio = new Audio('audio/nope.mp3');
+                        nopeAudio.play().catch(e => console.log("Audio error:", e));
+                        document.getElementById('modalBody').innerHTML = `
+                            <p style="text-align: center; color: #dc3545;">No tienes suficientes Puntos de Acción. Requieres ${costePA} PA para esta tarea.</p>
+                            <div style="text-align: center; margin-top: 20px;">
+                                <button class="drawer-btn" onclick="playClick(); closeModal()">Continuar</button>
+                            </div>
+                        `;
+                    } else if (data.success) {
+                        const pickupAudio = new Audio('audio/pickup.mp3');
+                        pickupAudio.play().catch(e => console.log("Audio error:", e));
+
+
+
+                        fetch(SCRIPT_LOCALIZACIONES_URL + `?action=updateStatus&item=${encodeURIComponent(nombreObjeto)}`)
+                            .then(response => response.json())
+                            .catch(err => console.error("Error al actualizar localizaciones:", err));
+
+                        document.getElementById('modalBody').innerHTML = `
+                            <p style="text-align: center; color: #5cdb95;">Operación completada. Objeto transferido a tu inventario.</p>
+                            <div style="text-align: center; margin-top: 20px;">
+                                <button class="drawer-btn" onclick="playClick(); closeModal()">Continuar</button>
+                            </div>
+                        `;
+                    } else {
+                        document.getElementById('modalBody').innerHTML = `
+                            <p style="text-align: center; color: #dc3545;">Error al actualizar la base de datos central.</p>
+                            <div style="text-align: center; margin-top: 20px;">
+                                <button class="drawer-btn" onclick="playClick(); closeModal()">Continuar</button>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    console.error("Error de red:", error);
+                    document.getElementById('modalBody').innerHTML = `
+                        <p style="text-align: center; color: #dc3545;">Error de conexión con el servidor.</p>
+                        <div style="text-align: center; margin-top: 20px;">
+                            <button class="drawer-btn" onclick="playClick(); closeModal()">Continuar</button>
+                        </div>
+                    `;
+                });
+        }
+
+        // --- RUTINA PARA REPARAR LA CALDERA (ACTIVACIONES1) ---
+        function revisarCaldera() {
+            document.getElementById('modalTitle').innerText = "Caldera";
+            document.getElementById('modalBody').innerHTML = `<p style="text-align: center; color: #4da6ff;">Comprobando el estado del sistema térmico...</p>`;
+            document.getElementById('gameModal').style.display = 'flex';
+
+            fetchConTimeout(SCRIPT_ACTIVACIONES_URL + `?action=getStatus&item=caldera`)
+                .then(async response => {
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    const text = await response.text();
+                    try { return JSON.parse(text); }
+                    catch (e) { throw new Error("El servidor no devolvió un JSON válido."); }
+                })
+                .then(data => {
+                    if (data.activado === true) {
+// --- AÑADE ESTAS LÍNEAS PARA REPRODUCIR EL AUDIO DE STEAM ---
+                        const steamAudio = new Audio('audio/steam.mp3');
+                        steamAudio.play().catch(e => console.log("Audio error:", e));
+// -------------------------------------------------------------
+                        document.getElementById('modalBody').innerHTML = `
+                            <p style="text-align: center; color: #5cdb95;">La caldera ya está arreglada.</p>
+                            <div style="text-align: center; margin-top: 20px;">
+                                <button class="drawer-btn" onclick="playClick(); closeModal()">Cerrar</button>
+                            </div>
+                        `;
+                    } else {
+                        solicitarCapCaldera();
+                    }
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    const mensaje = error.name === 'AbortError'
+                        ? "El servidor está tardando demasiado en responder. Vuelve a intentarlo en unos segundos."
+                        : "Error de conexión con el servidor.";
+                    document.getElementById('modalBody').innerHTML = `<p style="color: #dc3545; text-align: center;">${mensaje}</p>`;
+                });
+        }
+
+        function solicitarCapCaldera() {
+            document.getElementById('modalBody').innerHTML = `
+                <p style="text-align: center; color: #4da6ff;">Introduce tu CAP (código de acceso personal):</p>
+                <input type="text" id="personalCodeInput" class="code-input" maxlength="4" placeholder="----" autocomplete="off" autocapitalize="off" spellcheck="false" data-form-type="other">
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="drawer-btn" onclick="playClick(); validarCapCaldera()">Comprobar código</button>
+                </div>
+            `;
+        }
+
+        function validarCapCaldera() {
+            const codigo = document.getElementById('personalCodeInput').value.trim();
+
+            if (codigo === "hola") {
+                const nopeAudio = new Audio('audio/nope.mp3');
+                nopeAudio.play().catch(e => console.log("Audio error:", e));
+                document.getElementById('modalBody').innerHTML = `
+                    <p style="text-align: center; color: #dc3545;">Acceso restringido para este código.</p>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="drawer-btn" onclick="playClick(); closeModal()">Continuar</button>
+                    </div>
+                `;
+                return;
+            }
+
+            let jugadorIdentificado = "";
+            let costePA = 0;
+
+            if (codigo === "1245") {
+                jugadorIdentificado = "jugador1";
+                costePA = 2;
+            } else if (codigo === "2356") {
+                jugadorIdentificado = "jugador2";
+                jugadorActual = jugadorIdentificado;
+                document.getElementById('playerHud').innerText = `IDENTIDAD: ${jugadorActual.toUpperCase()}`;
+                localStorage.setItem('jugador_activo_global', jugadorActual);
+                localStorage.setItem('jugador_nombre_real', jugadorActual);
+                const nopeAudio = new Audio('audio/nope.mp3');
+                nopeAudio.play().catch(e => console.log("Audio error:", e));
+                document.getElementById('modalBody').innerHTML = `
+                    <p style="text-align: center; color: #dc3545;">Lo siento. No tienes ni idea de arreglar una caldera.</p>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="drawer-btn" onclick="playClick(); closeModal()">Cerrar</button>
+                    </div>
+                `;
+                return;
+            } else if (codigo === "3691") {
+                jugadorIdentificado = "jugador3";
+                costePA = 3;
+            } else if (codigo === "4826") {
+                jugadorIdentificado = "jugador4";
+                costePA = 4;
+            } else if (codigo === "5917") {
+                jugadorIdentificado = "jugador5";
+                costePA = 3;
+            } else if (codigo === "6428") {
+                jugadorIdentificado = "jugador6";
+                costePA = 1;
+            } else if (codigo === "7350") {
+                jugadorIdentificado = "jugador7";
+                costePA = 2;
+            } else {
+                const nopeAudio = new Audio('audio/nope.mp3');
+                nopeAudio.play().catch(e => console.log("Audio error:", e));
+                document.getElementById('modalBody').innerHTML = `
+                    <p style="text-align: center; color: #dc3545;">Código incorrecto. Acceso denegado.</p>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="drawer-btn" onclick="playClick(); closeModal()">Cerrar</button>
+                    </div>
+                `;
+                return;
+            }
+
+            jugadorActual = jugadorIdentificado;
+            document.getElementById('playerHud').innerText = `IDENTIDAD: ${jugadorActual.toUpperCase()}`;
+            localStorage.setItem('jugador_activo_global', jugadorActual);
+            localStorage.setItem('jugador_nombre_real', jugadorActual);
+
+            comprobarRecursosCaldera(costePA);
+        }
+
+        function comprobarRecursosCaldera(costePA) {
+            document.getElementById('modalBody').innerHTML = `<p style="text-align: center; color: #4da6ff;">Comprobando si tienes la herramienta adecuada ${jugadorActual}...</p>`;
+
+            fetchConTimeout(SCRIPT_INVENTARIO_URL + `?t=` + new Date().getTime())
+                .then(async response => {
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    const text = await response.text();
+                    try { return JSON.parse(text); }
+                    catch (e) { throw new Error("El servidor no devolvió un JSON válido."); }
+                })
+                .then(data => {
+                    if (!Array.isArray(data)) throw new Error("Formato de datos inesperado.");
+
+                    const jugadorData = data.find(p => String(p.jugador_id || '').toLowerCase().trim() === jugadorActual.toLowerCase().trim());
+
+                    if (!jugadorData) {
+                        document.getElementById('modalBody').innerHTML = `
+                            <p style="text-align: center; color: #dc3545;">No se ha encontrado al jugador en el sistema.</p>
+                            <div style="text-align: center; margin-top: 20px;">
+                                <button class="drawer-btn" onclick="playClick(); closeModal()">Cerrar</button>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    const paActuales = Number(jugadorData.puntos_accion) || 0;
+
+                    if (paActuales < costePA) {
+                        const nopeAudio = new Audio('audio/nope.mp3');
+                        nopeAudio.play().catch(e => console.log("Audio error:", e));
+                        document.getElementById('modalBody').innerHTML = `
+                            <p style="text-align: center; color: #dc3545;">Lo siento, no tienes Puntos de Acción suficientes.</p>
+                            <div style="text-align: center; margin-top: 20px;">
+                                <button class="drawer-btn" onclick="playClick(); closeModal()">Cerrar</button>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    const tieneHerramienta = !!(jugadorData.inventario && jugadorData.inventario['Herramienta'] === true);
+
+                    if (!tieneHerramienta) {
+                        const nopeAudio = new Audio('audio/nope.mp3');
+                        nopeAudio.play().catch(e => console.log("Audio error:", e));
+                        document.getElementById('modalBody').innerHTML = `
+                            <p style="text-align: center; color: #dc3545;">Lo siento. No tienes la herramienta necesaria para arreglar la caldera.</p>
+                            <div style="text-align: center; margin-top: 20px;">
+                                <button class="drawer-btn" onclick="playClick(); closeModal()">Cerrar</button>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    document.getElementById('modalBody').innerHTML = `
+                        <p style="text-align: center; color: #4da6ff;">¿Quieres arreglar la caldera? (Coste: ${costePA} Puntos de Acción).</p>
+                        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px;">
+                            <button class="drawer-btn" style="background-color: #28a745;" onclick="playClick(); confirmarReparacionCaldera(${costePA})">Sí</button>
+                            <button class="drawer-btn" style="background-color: #dc3545;" onclick="playClick(); closeModal()">No</button>
+                        </div>
+                    `;
+                })
+                .catch(error => {
+                    console.error("Error de red:", error);
+                    const mensaje = error.name === 'AbortError'
+                        ? "El servidor está tardando demasiado en responder. Vuelve a intentarlo en unos segundos."
+                        : "Error de conexión con el servidor.";
+                    document.getElementById('modalBody').innerHTML = `
+                        <p style="text-align: center; color: #dc3545;">${mensaje}</p>
+                        <div style="text-align: center; margin-top: 20px;">
+                            <button class="drawer-btn" onclick="playClick(); closeModal()">Cerrar</button>
+                        </div>
+                    `;
+                });
+        }
+
+        function confirmarReparacionCaldera(costePA) {
+            document.getElementById('modalBody').innerHTML = `<p style="text-align: center; color: #4da6ff;">Reparando la caldera...</p>`;
+
+            fetchConTimeout(SCRIPT_INVENTARIO_URL + `?action=verificarYProcesarObjeto&jugador=${encodeURIComponent(jugadorActual)}&item=herramienta&coste=${costePA}`)
+                .then(async response => {
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    const text = await response.text();
+                    try { return JSON.parse(text); }
+                    catch (e) { throw new Error("El servidor no devolvió un JSON válido."); }
+                })
+                .then(data => {
+                    if (data.suficientesAcciones === false) {
+                        const nopeAudio = new Audio('audio/nope.mp3');
+                        nopeAudio.play().catch(e => console.log("Audio error:", e));
+                        document.getElementById('modalBody').innerHTML = `
+                            <p style="text-align: center; color: #dc3545;">Lo siento, no tienes Puntos de Acción suficientes.</p>
+                            <div style="text-align: center; margin-top: 20px;">
+                                <button class="drawer-btn" onclick="playClick(); closeModal()">Cerrar</button>
+                            </div>
+                        `;
+                    } else if (data.success) {
+                        const steamAudio = new Audio('audio/steam.mp3');
+                        steamAudio.play().catch(e => console.log("Audio error:", e));
+
+                        fetchConTimeout(SCRIPT_ACTIVACIONES_URL + `?action=updateStatus&item=caldera`)
+                            .then(response => response.json())
+                            .catch(err => console.error("Error al actualizar Activaciones1:", err));
+
+                        document.getElementById('modalBody').innerHTML = `
+                            <p style="text-align: center; color: #5cdb95;">Muy bien, has arreglado la caldera. Tenéis 30 minutos más.</p>
+                            <div style="text-align: center; margin-top: 20px;">
+                                <button class="drawer-btn" onclick="playClick(); closeModal()">Cerrar</button>
+                            </div>
+                        `;
+                    } else {
+                        document.getElementById('modalBody').innerHTML = `
+                            <p style="text-align: center; color: #dc3545;">Error al actualizar la base de datos central.</p>
+                            <div style="text-align: center; margin-top: 20px;">
+                                <button class="drawer-btn" onclick="playClick(); closeModal()">Cerrar</button>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    console.error("Error de red:", error);
+                    const mensaje = error.name === 'AbortError'
+                        ? "El servidor está tardando demasiado en responder. Vuelve a intentarlo en unos segundos."
+                        : "Error de conexión con el servidor.";
+                    document.getElementById('modalBody').innerHTML = `
+                        <p style="text-align: center; color: #dc3545;">${mensaje}</p>
+                        <div style="text-align: center; margin-top: 20px;">
+                            <button class="drawer-btn" onclick="playClick(); closeModal()">Cerrar</button>
+                        </div>
+                    `;
+                });
+        }
+
+        function showFullscreenImage(src) {
+            const viewer = document.getElementById('fullscreenViewer');
+            const img = document.getElementById('fullscreenImg');
+            img.src = src;
+            viewer.style.display = 'flex';
+        }
+
+        function closeFullscreen() {
+            document.getElementById('fullscreenViewer').style.display = 'none';
+        }
+
+        function closeModal() {
+            document.getElementById('gameModal').style.display = 'none';
+        }
+
+        function volverAlMapa(event) {
+            event.preventDefault();
+            const doorAudio = new Audio('audio/opendoor.mp3');
+            doorAudio.play().catch(e => console.log("Audio error:", e));
+            setTimeout(() => {
+                window.location.href = `mapa.html?jugador=${encodeURIComponent(jugadorActual)}`;
+            }, 1500);
+        }
+    </script>
+</body>
+</html>
